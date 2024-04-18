@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { FirebaseError } from "firebase/app";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { Error, Form, Input, Switcher, Title, Wrapper } from "../components/auth-components";
+import GithubButton from "../components/github-btn";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -65,12 +66,13 @@ export default function Login() {
           type="password"
           required
         />
-        <Input type="submit" value={isLoading ? "Loading..." : "Create Accout"} />
+        <Input type="submit" value={isLoading ? "Loading..." : "Log in"} />
       </Form>
       {error && <Error>{error}</Error>}
       <Switcher>
         Don't have an account? <Link to="/create-account">Create one &rarr;</Link>
       </Switcher>
+      <GithubButton />
     </Wrapper>
   );
 }

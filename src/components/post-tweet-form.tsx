@@ -1,7 +1,8 @@
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, updateDoc } from "firebase/firestore";
 import React, { useState } from "react";
 import { styled } from "styled-components";
-import { auth, db } from "../firebase";
+import { auth, db, storage } from "../firebase";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
 const Form = styled.form`
   display: flex;
@@ -25,6 +26,9 @@ const TextArea = styled.textarea`
   &:focus {
     outline: none;
     border-color: #1d9bf0;
+  }
+  &::-webkit-scrollbar {
+    display: none;
   }
 `;
 const AttachFileButton = styled.label`
@@ -71,16 +75,29 @@ export default function PostTweetForm() {
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const user = auth.currentUser;
-    console.log(user);
     if (!user || isLoading || tweet === "" || tweet.length > 180) return;
+    if (file && file.size > 1024 ** 2) return;
     try {
       setLoading(true);
-      await addDoc(collection(db, "tweets"), {
+      const doc = await addDoc(collection(db, "tweets"), {
         tweet,
         createAt: Date.now(),
         username: user.displayName || "Anonymouse",
         userId: user.uid,
       });
+      if (file) {
+        const locationRef = ref(
+          storage,
+          `tweets/${user.uid}-${user.displayName || "Anonymouse"}/${doc.id}`
+        );
+        const result = await uploadBytes(locationRef, file);
+        const url = await getDownloadURL(result.ref);
+        await updateDoc(doc, {
+          photo: url,
+        });
+      }
+      setTweet("");
+      setFile(null);
     } catch (e) {
       console.log(e);
     } finally {
@@ -95,6 +112,7 @@ export default function PostTweetForm() {
         rows={5}
         maxLength={150}
         placeholder="What is happening?"
+        required
       ></TextArea>
       <AttachFileButton htmlFor="file">{file ? "Photo added ✅" : "Add photo"}</AttachFileButton>
       <AttachFileInput onChange={onFileChange} type="file" id="file" accept="image/*" />

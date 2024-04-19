@@ -6,6 +6,9 @@ const Wrapper = styled.div`
   gap: 50px;
   overflow-y: scroll;
   grid-template-rows: 1fr 5fr;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 export default function Home() {
   return (
